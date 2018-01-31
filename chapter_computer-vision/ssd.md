@@ -111,7 +111,7 @@ plt.show()
 因为边框可以出现在图片中的任何位置，并且可以有任意大小。为了简化计算，SSD跟Faster R-CNN一样使用一些默认的边界框，或者称之为锚框（anchor box），做为搜索起点。具体来说，对输入的每个像素，以其为中心采样数个有不同形状和不同比例的边界框。假设输入大小是 $w \times h$，
 
 - 给定大小 $s\in (0,1]$，那么生成的边界框形状是 $ws \times hs$
-- 给定比例 $r > 0$，那么生成的边界框形状是 $w\sqrt{r} \times \frac{h}{\sqrt{r}}$
+- 给定比例 $r > 0$，那么生成的边界框形状是(不改变面积大小，改变长宽比) $w\sqrt{r} \times \frac{h}{\sqrt{r}}$
 
 在采样的时候我们提供 $n$ 个大小（`sizes`）和 $m$ 个比例（`ratios`）。为了计算简单这里不生成$nm$个锚框，而是$n+m-1$个。其中第 $i$ 个锚框使用
 
@@ -127,7 +127,7 @@ from mxnet.contrib.ndarray import MultiBoxPrior
 # shape: batch x channel x height x weight
 n = 40
 x = nd.random.uniform(shape=(1, 3, n, n))
-
+# y all bbox
 y = MultiBoxPrior(x, sizes=[.5,.25,.1], ratios=[1,2,.5])
 
 boxes = y.reshape((n, n, -1, 4))
@@ -138,6 +138,13 @@ boxes[20, 20, 0, :]
 ```
 
 我们可以画出以`(20,20)`为中心的所有锚框：
+
+---
+
+锚点，如何确定的呢？
+（实际上是，每个像素都要看成锚点，一张图片像素大小：40*40.
+
+生成的锚框为40*40*5）
 
 ```{.python .input  n=6}
 colors = ['blue', 'green', 'red', 'black', 'magenta']
@@ -633,7 +640,7 @@ display(im, out[0], threshold=0.5)
 
 ## 结论
 
-物体检测比分类要困难很多。因为我们不仅要预测物体类别，还要找到它们的位置。这一章我们展示我们还是可以在合理篇幅里实现SSD算法。
+物体检测比分类要困难很多。因为我们不仅要预**测物体类别**，还要找到它们的**位置**。这一章我们展示我们还是可以在合理篇幅里实现SSD算法。
 
 ## 练习
 

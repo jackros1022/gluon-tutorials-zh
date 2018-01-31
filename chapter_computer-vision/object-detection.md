@@ -54,22 +54,50 @@ Fast R-CNN对R-CNN主要做了两点改进来提升性能。
 
 Fast R-CNN提出兴趣区域池化层（Region of Interest (RoI) pooling），它的输入为特征和一系列的区域，对每个区域它将其均匀划分成$n \times m$的小区域，并对每个小区域做最大池化，从而得到一个$n\times m$的输出。因此不管输入区域的大小，RoI池化层都将其池化成固定大小输出。
 
-下面我们仔细看一下RoI池化层是如何工作的，假设对于一张图片我们提出了一个$4\times 4$的特征，并且通道数为1.
+下面我们仔细看一下**RoI池化层**是如何工作的，假设对于一张图片我们提出了一个$4\times 4$的特征，并且通道数为1.
+其中，reshape((1,1,4,4))代表（样本，通道，宽，高）
 
-```{.python .input  n=7}
+```{.python .input  n=17}
 from mxnet import nd
 
 x = nd.arange(16).reshape((1,1,4,4))
 x
 ```
 
+```{.json .output n=17}
+[
+ {
+  "data": {
+   "text/plain": "\n[[[[  0.   1.   2.   3.]\n   [  4.   5.   6.   7.]\n   [  8.   9.  10.  11.]\n   [ 12.  13.  14.  15.]]]]\n<NDArray 1x1x4x4 @cpu(0)>"
+  },
+  "execution_count": 17,
+  "metadata": {},
+  "output_type": "execute_result"
+ }
+]
+```
+
 然后我们创建两个区域，每个区域由一个长为5的向量表示。第一个元素是其对应的物体的标号，之后分别是`x_min`，`y_min`，`x_max`，和`y_max`。这里我们生成了$3\times 3$和$4\times 3$大小的两个区域。
 
 RoI池化层的输出大小是`num_regions x num_channels x n x m`。它可以当做一个样本个数是`num_regions`的普通批量进入到其他层进行训练。
+其中，nd.array([[0,0,0,2,2], [0,0,1,3,3]])代表两个矩形，[0:标签，0,0：左下角，2,2右上角]
 
-```{.python .input  n=10}
+```{.python .input  n=18}
 rois = nd.array([[0,0,0,2,2], [0,0,1,3,3]])
 nd.ROIPooling(x, rois, pooled_size=(2,2), spatial_scale=1)
+```
+
+```{.json .output n=18}
+[
+ {
+  "data": {
+   "text/plain": "\n[[[[  5.   6.]\n   [  9.  10.]]]\n\n\n [[[  9.  11.]\n   [ 13.  15.]]]]\n<NDArray 2x1x2x2 @cpu(0)>"
+  },
+  "execution_count": 18,
+  "metadata": {},
+  "output_type": "execute_result"
+ }
+]
 ```
 
 ## Faster R-CNN：更快速的区域卷积神经网络
@@ -80,6 +108,9 @@ Fast R-CNN沿用了R-CNN的选择性搜索方法来选择区域。这个通常�
 1. 以对每个像素为中心生成数个大小和长宽比预先设计好的$k$个默认边框，通常也叫**锚框**。
 1. 对每个边框，使用其中心像素对应的256维向量作为特征，RPN训练一个2类分类器来判断这个区域是不是含有任何感兴趣的物体还是只是背景，和一个4维输出的回归器来预测一个更准确的边框。
 1. 对于所有的锚框，个数为$nmk$如果输入大小是$n\times m$，选出被判断成还有物体的，然后前他们对应的回归器预测的边框作为输入放进接下来的RoI池化层
+
+----
+ROI Pooling怎么理解
 
 ![Faster R-CNN](../img/faster-rcnn.svg)
 
@@ -136,3 +167,7 @@ YOLO v2对YOLO进行一些地方的改进，其主要包括：
 
 
 **吐槽和讨论欢迎点**[这里](https://discuss.gluon.ai/t/topic/2510)
+
+```{.python .input}
+
+```
